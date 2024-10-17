@@ -1,126 +1,153 @@
-# SDC JavaScript/TypeScript Web Development Tasks
+# SDC JavaScript/TypeScript Shop.co Website
 
-## Installation
+Your team task is to implement Frontend and Backend for E-Commerce Website
 
-### Fork current repository into your account
+[[_TOC_]]
 
-1. Navigate to https://github.com/School-of-Digital-Competencies/js-ts-webdev-tasks
-2. Click on `Fork` button in the top right corner
-3. Select your personal account in the `Ownder` dropdown
-4. Don't change the `Repository name`
-5. _Uncheck_ button `Copy the main branch only`
-6. Click on `Create fork` button
-7. Navigate to your forked repository
+## Frontend
 
-### Cloning your forked repository with tasks into your local machine
+### Technical Requirements
 
-1. Navigate to your forker repository and click on blue button `Clone`
-2. In dropdown find section **Clone with SSH** and copy that url git@github:...git
-3. In console on your machine navigate to any folder you like and paste copied url after git clone: `git clone git@github...tasks.git`
-4. Type in yes if console asks you about fingerprint
-5. After cloning is done, in console type in `cd js-ts-webdev-tasks` and click Enter
-6. Now you should be in a folder `js-ts-webdev-tasks`
-7. In console type in `git config user.name "Name Surname"` where Name is your Name (same as on Github profile) and Surname is your Surname (same as on Github profile). **Your name should be written in English**. **Don't remove " " symbols**
-8. In console type in `git config user.email youremailaddress@student.ehu.lt` where `youremailaddress@student.ehu.lt` is your address you used to register on Github (the same as on Github profile)
-9. In console type in `git config user.name` and click Enter. You should see your name
-10. In console type in `git config user.email` and click Enter. You should see your email address
+- Vite 5 https://vitejs.dev/
+- TypeScript 5 https://www.typescriptlang.org/
+- ESLint (with TS rules)
+- Prettier
+- HTML5 https://www.w3.org/TR/2011/WD-html5-20110405/
+- CCS3/SCSS/SASS/Less or any other approach
+  - if you are not using any CCS library, then it's a must to choose one CCS approach and follow it https://www.ianholden.co.uk/blog/css-architecture-bem-oocss-smacss-acss-and-why-we-need-it
+- CSS libraries (with required JS/TS for some components like Modals, Tabs, Pagination, etc), possible choise:
+  - Tailwind CSS https://tailwindcss.com/
+  - Bulma https://bulma.io/
+  - Bootstrap https://getbootstrap.com/
+  - See more at https://github.com/troxler/awesome-css-frameworks
+- Responsive design support. If you chose CSS library, then follow already defined screen widths there, if not then:
+  - Mobile up to 600px
+  - Desktop from 1024px
+- Fonts
+  - Rubik https://fonts.google.com/specimen/Rubik
+  - Poppins https://fonts.google.com/specimen/Poppins
+- Router, possible choise:
+  - https://www.npmjs.com/package/navigo
+  - https://npmjs.com/package/yourrouter
+  - custom implementation
+- Redux store if it's needed to share data between pages or different components (NOT REACT!!!) for example `userId`, `cartId`
+- localStorage/sessionStorage to save data to prevent it lost after page refresh https://learn.javascript.ru/localstorage
+- Fetch API https://learn.javascript.ru/fetch-api or Axios https://axios-http.com/ for communication with Backend
 
-## How to solve Hometasks
+### Design
 
-We are using different branches for your hometasks
+Figma Design Link https://www.figma.com/file/Q0zYyVhjvTQMKg8tqtUPLB/E-commerce-Website-Template-(Freebie)-(Community)?type=design&node-id=0%3A1&mode=design&t=XmMnUq455lfxiTnI-1
 
-```
-main - used for general repository instructions
-```
+Alternativly all screens could be found in `frontend/design` folder
 
-Each branch starting with `hometasks-...` contains a set of tasks dedicated to the lecture module.
+### Pages
 
-```
-hometasks-sections-hero
-hometasks-sections-forms
-...
-```
+- Homepage
+- Category Page
+- Product Detail Page
+- Cart
+- Order confirmation
 
-To solve each hometask you must checkout to the related branch into your local cloned repository
+#### Homepage
 
-## How to copy new hometasks into your already forked repository
+- URL `/`
+- Shop now button scrolls to the Categories section
+- Categories sections display all available categories
+  - Backend call `GET /products/categories`
+  - Each category is displayed in rectangle with a title inside (words should be breaking as it is shown on the design)
+- Click on any category opens "Category page" for the selected category: `/category/:categoryName`
 
-### One-time installation step
+#### Category Page
 
-Please add remote branch linking into your local git
+- URL: `category/:categoryName` where `categoryName` is the dynamic name of the selected category i.e. `category/skincare`, `category/laptops`
+- All products related to the selected category should be displayed
+  - Backend call to get products in the category `GET /products/category/:categoryName`
+- Click on any product opens "Product Detail Page" for the selected product: `/product/:productId`
+- Filters panel
+  - Brand filters should contain all brands from the products inside category
+  - Each brand is selectable
+  - Selected brand is shown in bold font, unselected - in regular font
+  - Price filter minimum value is 10$, maximum value is 2000$
+  - Apply filter button should filter products on the right side and show only those which are satisfied filter params (brand and price)
+  - Reset filter button should reload products in the selected category from Backend
+  - On Mobile screen filters panel could be opened by clicking filter icons on the right side of the Category Name title
+  - On Mobile screen filters panel could be closed by clicking on the cross icon on the right side on overflow or by clicking buttons Apply filter or Reset Filter
 
-#### Console
+#### Product Detail Page
 
-To do this, please in console run commands
+- URL: `/product/:productId` where `productId` is the dynamic id of the product i.e. `product/17`, `product/5`
+- Image gallery displays the first image as the main image and the rest as the alternatives
+- Add to cart should add selected amount of a product to the cart
+  - if cart is not existed (no any items in the cart yet), then there is a need to create a new cart with selected amount of products: Backend call `POST /carts` and save cart id and products list in the cart on the Frontend
+  - if cart is already existed (there are few items already),
+    then there is a need to update a cart: Backend call `POST /carts` and update saved cart id and products list in the cart on the Frontend
 
-```
-git remote rm upstream
+#### Cart Page
 
-git remote add upstream https://github.com/school-of-digital-competencies/js-ts-webdev-lectures
-```
+- URL: `/carts/:cartId` where `cartId` is the dynamic id of the cart i.e. `carts/5`, `carts/1`
+- `Go to checkout` button must have text `Place an order` and opens a new page `Order Confirmation`
 
-#### Visual Studio Code
+#### Order Confirmation
 
-In Source Control menu click on three dots -> Remote -> Add remote -> Paste `https://github.com/school-of-digital-competencies/js-ts-webdev-lectures` -> Enter upstream
+- URL: `/confirmation`
+- When a user appears on the page, set up a timer for 5 seconds. When the timer is finished, redirect a user to the `Homepage`
 
-**NOTE** You might need to remove previously created upstream. In Source Control menu click on three dots -> Remote -> Remove remote -> upstream.
+### Components
 
-### How to start solving new tasks (get new branches into your Git)
+#### Header
 
-#### Console
+- Click on logo opens `Homepage`
+- Click on `cart` icon opens `Cart` page
+  - If the cart is empty or not exists, display a message `Cart is empty` on `Cart` page (the same UI as on `Order Confirmation` page but different text inside)
+  - otherwise display current cart
 
-When the linking is created (see instructions above), run command `git fetch upstream` to get a new branch with tasks.
+#### Subscribe banner
 
-Type `git branch -a` to ensure you see in a list lines like `remotes/upstream/hometasks-...`.
+- Field to enter a email address
+- Support validation for email input
+- Click on `Subscribe to Newsletter` send mock Backend request with (setTimeout wrapped in Promise) and rerender component with a text `Success! You've subscribed to our newslatter.`
 
-Assuming the new branch (with new tasks you haven't solved yet) is `hometasks-simple-tasks`.
+## Backend
 
-Type `git switch hometasks-simple-tasks`. If you see two messages
+### Technical Requirements
 
-```
-Branch 'hometasks-simple-tasks' set up to track remote branch 'hometasks-simple-tasks' from 'upstream'
-Switched to a new branch 'hometasks-simple-tasks'
-```
+- REST API Node.js server
+    - Allowed to use Express.js, Koa.js
+- TypeScript 5 https://www.typescriptlang.org/
+- ESLint (with TS rules)
+- Prettier
 
-Then you did it correctly.
+### Routes
 
-Now the next step is to publish that branch into your Git repositry (origin). Run command `git push -u origin`. You should see a list of messages containing that line:
+#### Get all products 
 
-```
-...
-To github.com:YOUR_NAME/js-ts-tasks.git
-* [new branch]     hometasks-simple-tasks -> hometasks-simple-tasks
-...
-```
+- GET `/products`
+- 
 
-You're done, now you could write solutions for your task.
+## Evaluation criteria - max 10 points
 
-#### Visual Studio Code
+### Render of pages (HTML, CSS, TS) - maximum 5 points
 
-Now when the linking is created, In Source Control menu click on three dots -> Pull, Push -> Fetch From All Remotes menu item to get a new branch with tasks.
+- Homepage <b>1 points</b>
+- Category Page <b>1 points</b>
+- Product Detail Page <b>1 points</b>
+- Cart <b>1 points</b>
+- Order confirmation <b>1 points</b>
 
-Then checkout/switch to that branch (`upstream/hometasks-...`)
+### Backend - 4 points
 
-Now you could create your solution locally.
+### Completed scenarious - maximum 1 points (1 point for each)
 
-To prepare for Autocode submit please push your local branch into your repository. In Source Control menu click on three dots -> Pull, Push -> Push to... -> Select **origin (not upstream)**
+#### Scenario 1 - order several items
 
-### How to get tasks updates
-
-#### Console
-
-Sometimes there are improvements in already published tasks. To get new changes from upstream repository you should use `git pull` command.
-
-For example, let's assume there are some updated in `upstream/hometasks-simple-tasks` branch. Run in console `git pull upstream hometasks-simple-tasks` to pull recent changes from remote branch into your local repository.
-
-## How to run tasks locally
-
-1. Switch to the tasks branch you would like to solve
-2. Each task has its own instructions in README.md
-
-## How to submit solution to Moodle
-
-1. Develop a solution
-2. Commit your solution
-3. _Push your solution to your forked repository_
-4. Submit a link to the branch with solution in your forked repository to the moodle
+- Open homepage
+- Open some category
+- Open some item
+- Add to cart
+- Navigate homepage
+- Select another category
+- Open another item
+- Add to cart
+- Open cart
+- Place an order
+- Reach order confirmation page
