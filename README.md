@@ -1,126 +1,57 @@
-# SDC JavaScript/TypeScript Web Development Tasks
+# Hometask JavaScript Events
 
-## Installation
+Your task is to develop a webpage according to the provided Figma design.
 
-### Fork current repository into your account
+On the provided page you will find two sections: the list of items (Jackets & Coats, Hoodies, etc) on the left and the products on the right.
 
-1. Navigate to https://github.com/School-of-Digital-Competencies/js-ts-webdev-tasks
-2. Click on `Fork` button in the top right corner
-3. Select your personal account in the `Ownder` dropdown
-4. Don't change the `Repository name`
-5. _Uncheck_ button `Copy the main branch only`
-6. Click on `Create fork` button
-7. Navigate to your forked repository
+For the left section there is a need to handle click evens on each item (Jackets & Coats, Hoodies, etc). If a user clicks on any item, it must be colored with a color (like it's now in Figma on T-shirts & Vests item). The previous clicked item must be colored as the rest items in grey color.
 
-### Cloning your forked repository with tasks into your local machine
+Advice: create a JavaScript array of objects or strings for storing data for rendering and then pass it JavaScript DOM API functions to create and attach DOM elements.
 
-1. Navigate to your forker repository and click on blue button `Clone`
-2. In dropdown find section **Clone with SSH** and copy that url git@github:...git
-3. In console on your machine navigate to any folder you like and paste copied url after git clone: `git clone git@github...tasks.git`
-4. Type in yes if console asks you about fingerprint
-5. After cloning is done, in console type in `cd js-ts-webdev-tasks` and click Enter
-6. Now you should be in a folder `js-ts-webdev-tasks`
-7. In console type in `git config user.name "Name Surname"` where Name is your Name (same as on Github profile) and Surname is your Surname (same as on Github profile). **Your name should be written in English**. **Don't remove " " symbols**
-8. In console type in `git config user.email youremailaddress@student.ehu.lt` where `youremailaddress@student.ehu.lt` is your address you used to register on Github (the same as on Github profile)
-9. In console type in `git config user.name` and click Enter. You should see your name
-10. In console type in `git config user.email` and click Enter. You should see your email address
+Example (for the left section)
 
-## How to solve Hometasks
+```js
+const NAVIGATION_LIST_ITEMS = [
+  "Jackets & Coats",
+  "Hoodies",
+  "T-shirts & Vests",
+];
 
-We are using different branches for your hometasks
+const fragment = document.createDocumentFragment();
+NAVIGATION_LIST_ITEMS.forEach((item) => {
+  const element = document.createElement("li");
+  element.textContent = item;
+  fragment.append(li);
+});
 
-```
-main - used for general repository instructions
+const ul = document.createElement("ul");
+ul.append(fragment);
+document.body.append(ul);
 ```
 
-Each branch starting with `hometasks-...` contains a set of tasks dedicated to the lecture module.
+## Figma design
 
-```
-hometasks-sections-hero
-hometasks-sections-forms
-...
-```
+In Figma navigate to `Pages -> Ecommerce [NEW] -> ecommerce_5`
 
-To solve each hometask you must checkout to the related branch into your local cloned repository
+Figma design link: https://www.figma.com/design/AJqg3a4WEZ2MHKzZZcl5FY/Free-Figma-Website-Landing-Pages---Startup-App-(Community)-(Copy)?node-id=0-3825&node-type=canvas&t=kZ1GJwCxy7ZAQKWl-0
 
-## How to copy new hometasks into your already forked repository
+## Requirements
 
-### One-time installation step
+- Only one `index.html` file is allowded for all HTML code
+- Only one `style.css` file is allowded for all CSS code
+- Only one `main.js` file is allowded for all JS code
+- Create a folder named `assets` to store images and fonts downloaded from Figma (hint: fonts could be imported from google fonts in CSS file)
+- For CSS you could create your own code or choose one of the following CSS Frameworks/libriares:
+  - Bulma http://bulma.io/
+  - Bootstrap https://getbootstrap.com/
+  - TailwindCSS https://github.com/tailwindcss/tailwindcss
 
-Please add remote branch linking into your local git
+## Evaluation criterias - max 10 points
 
-#### Console
-
-To do this, please in console run commands
-
-```
-git remote rm upstream
-
-git remote add upstream https://github.com/school-of-digital-competencies/js-ts-webdev-lectures
-```
-
-#### Visual Studio Code
-
-In Source Control menu click on three dots -> Remote -> Add remote -> Paste `https://github.com/school-of-digital-competencies/js-ts-webdev-lectures` -> Enter upstream
-
-**NOTE** You might need to remove previously created upstream. In Source Control menu click on three dots -> Remote -> Remove remote -> upstream.
-
-### How to start solving new tasks (get new branches into your Git)
-
-#### Console
-
-When the linking is created (see instructions above), run command `git fetch upstream` to get a new branch with tasks.
-
-Type `git branch -a` to ensure you see in a list lines like `remotes/upstream/hometasks-...`.
-
-Assuming the new branch (with new tasks you haven't solved yet) is `hometasks-simple-tasks`.
-
-Type `git switch hometasks-simple-tasks`. If you see two messages
-
-```
-Branch 'hometasks-simple-tasks' set up to track remote branch 'hometasks-simple-tasks' from 'upstream'
-Switched to a new branch 'hometasks-simple-tasks'
-```
-
-Then you did it correctly.
-
-Now the next step is to publish that branch into your Git repositry (origin). Run command `git push -u origin`. You should see a list of messages containing that line:
-
-```
-...
-To github.com:YOUR_NAME/js-ts-tasks.git
-* [new branch]     hometasks-simple-tasks -> hometasks-simple-tasks
-...
-```
-
-You're done, now you could write solutions for your task.
-
-#### Visual Studio Code
-
-Now when the linking is created, In Source Control menu click on three dots -> Pull, Push -> Fetch From All Remotes menu item to get a new branch with tasks.
-
-Then checkout/switch to that branch (`upstream/hometasks-...`)
-
-Now you could create your solution locally.
-
-To prepare for Autocode submit please push your local branch into your repository. In Source Control menu click on three dots -> Pull, Push -> Push to... -> Select **origin (not upstream)**
-
-### How to get tasks updates
-
-#### Console
-
-Sometimes there are improvements in already published tasks. To get new changes from upstream repository you should use `git pull` command.
-
-For example, let's assume there are some updated in `upstream/hometasks-simple-tasks` branch. Run in console `git pull upstream hometasks-simple-tasks` to pull recent changes from remote branch into your local repository.
-
-## How to run tasks locally
-
-1. Switch to the tasks branch you would like to solve
-2. Each task has its own instructions in README.md
-
-## How to submit solution to Moodle
-
-1. Develop a solution
-2. Commit your solution
-3. _Push your solution to your forked repository_
-4. Submit a link to the branch with solution in your forked repository to the moodle
+- Usage of three files (index.html, style.css, main.js) - 1 points
+- Usage of downloaded assets (images, fonts) - 1 point
+- Usage of DOM API functions to create HTML tags and attach to DOM - 4 points
+- Create a page according to the provided Figma design - max 2 points including:
+  - Left section - 1 point
+  - Right section - 1 point
+- Handle click events on the left section and do required action - 2 points
