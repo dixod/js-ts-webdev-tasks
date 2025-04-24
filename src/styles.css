@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: #FFFFFF;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items:baseline;
+    padding: 100px 140px 12px 140px;
+}
+
+.titleHeader {
+    color: #1E0E62;
+    font-size: 42px;
+    display: flex;
+    font-weight: 700;
+    width: 213px;
+    height: 52px;
+
+}
+
+.buttonHeader {
+    width: 214px;
+    height: 50px;
+    border-radius: 100px;
+    border: 2px solid #EBEAED;
+    background-color: #FFFFFF;
+    color: #1E0E62;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.app {
+    margin: 0 140px 115px 140px;
+    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 30px;
+    position: relative;
+    border-radius: 10px;
+    
+}
+
+.app>div {
+    border: 2px solid #EBEAED;
+    border-radius: 10px;
+}
+
+div>button {
+    width: 105px;
+    height: 40px;
+    border-radius: 100px;
+    margin: 0 0 80px 71px;
+    border: none;
+    font-weight: 500;
+}
