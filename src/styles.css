@@ -59,4 +59,5 @@ div>button {
     margin: 0 0 80px 71px;
     border: none;
     font-weight: 500;
+    cursor: pointer;
 }
