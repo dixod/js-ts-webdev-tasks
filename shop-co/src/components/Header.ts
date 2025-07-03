@@ -21,9 +21,14 @@ export function createHeader(): HTMLElement {
     </div>
   `;
 
-  header.querySelector('#cart-icon')?.addEventListener('click', () =>
-    router.navigate('/cart/card-id')
-  );
+  header.querySelector('#cart-icon')?.addEventListener('click', () => {
+    const cartId = localStorage.getItem('cartId');
+    if (cartId) {
+      router.navigate(`/cart/${cartId}`);
+    } else {
+      router.navigate('/cart/empty');
+    }
+  });
 
   return header;
 }

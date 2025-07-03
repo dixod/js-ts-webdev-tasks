@@ -1,6 +1,7 @@
 export function createFooter(): HTMLElement {
   const footer = document.createElement('footer');
-  footer.className = 'bg-white py-8 text-#F0F0F0';
+  footer.className = 'bg-gray-100 py-8 text-gray-800';
+
   footer.innerHTML = `
     <div class="container mx-auto px-4 lg:px-24">
       <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-8">
@@ -28,7 +29,7 @@ export function createFooter(): HTMLElement {
         </div>
 
         <div class="text-gray-600">
-          <h4 class=" font-semibold text-black tracking-wider mb-4">HELP</h4>
+          <h4 class="font-semibold text-black tracking-wider mb-4">HELP</h4>
           <ul class="space-y-3">
             <li><a href="#" class="hover:underline">Customer Support</a></li>
             <li><a href="#" class="hover:underline">Delivery Details</a></li>

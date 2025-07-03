@@ -3,15 +3,24 @@ import { createSubscribeBanner } from '../components/SubscribeBanner';
 import { createFooter } from '../components/Footer';
 import { router } from '../router';
 
-interface Product    { id: number; title: string; price: number; discountPercentage: number; rating: number; thumbnail: string; }
+interface Product {
+  id: number;
+  title: string;
+  price: number;
+  discountPercentage: number;
+  rating: number;
+  thumbnail: string;
+}
+
 let products: Product[] = [];
-let sortOrder: 'asc'|'desc' = 'desc';
+let sortOrder: 'asc' | 'desc' = 'desc';
 
 export async function renderCategoryPage(app: HTMLElement, category: string) {
   app.innerHTML = '';
   app.append(createHeader());
 
-  const title = category.replace(/-/g,' ').replace(/\b\w/g,c => c.toUpperCase());
+  const title = category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
   app.innerHTML += `
     <main class="flex flex-col">
       <div class="container mx-auto px-4 lg:px-24 py-8">
@@ -24,8 +33,10 @@ export async function renderCategoryPage(app: HTMLElement, category: string) {
           <aside id="panel" class="fixed inset-x-0 bottom-0 h-1/2 bg-white z-40 transform translate-y-full lg:translate-y-0 lg:static lg:w-1/4 lg:max-w-xs lg:border-r overflow-y-auto transition-transform">
             <div class="p-4 border-b lg:hidden flex justify-between"><h3 class="text-2xl font-poppins">Filters</h3><button id="close">&times;</button></div>
             <div class="p-4 space-y-4">
-              <div><h4 class="text-lg font-semibold font-poppins mb-2">Sort</h4>
-                ${['asc','desc'].map(o => `<button data-order="${o}" class="sort-btn text-left w-full py-1">${o==='asc'?'Ascending':'Descending'}</button>`).join('')}
+              <div>
+                <h4 class="text-lg font-semibold font-poppins mb-2">Sort</h4>
+                <button data-order="asc" class="sort-btn text-left w-full py-1">Ascending</button>
+                <button data-order="desc" class="sort-btn text-left w-full py-1">Descending</button>
               </div>
               <button id="apply" class="w-full py-3 bg-black text-white rounded-full">Apply</button>
               <button id="reset" class="w-full py-3 bg-gray-200 text-gray-800 rounded-full">Reset</button>
@@ -38,52 +49,131 @@ export async function renderCategoryPage(app: HTMLElement, category: string) {
         </div>
       </div>
       ${createSubscribeBanner().outerHTML}
-    </main>`;
+    </main>
+  `;
   app.append(createFooter());
 
   const panel = app.querySelector('#panel') as HTMLElement;
   const grid = app.querySelector('#grid') as HTMLElement;
   const emptyMsg = app.querySelector('#empty') as HTMLElement;
 
-  const updateUI = () => {
-    app.querySelectorAll('.sort-btn').forEach(btn => {
-      const active = btn.getAttribute('data-order') === sortOrder;
-      btn.classList.toggle('font-bold', active);
-      btn.classList.toggle('text-gray-500', !active);
-    });
-    renderGrid();
-  };
+  async function fetchProducts() {
+    try {
+      const res = await fetch(`https://dummyjson.com/products/category/${category}`);
+      const json = await res.json();
+      products = json.products;
+    } catch {
+      products = [];
+    }
+  }
 
-  const renderGrid = () => {
-    const list = [...products].sort((a,b) => sortOrder==='asc'? a.price-b.price : b.price-a.price);
-    grid.innerHTML = list.map(p => `
-      <div class="bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition cursor-pointer" onclick="router.navigate('/product/${p.id}')">
-        <img src="${p.thumbnail}" alt="" class="w-full h-48 object-cover"/>
-        <div class="p-4">
-          <h3 class="text-lg font-semibold truncate font-poppins">${p.title}</h3>
-          <div class="flex items-center text-yellow-500 mt-1">${'<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.683-1.532 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.777.565-1.832-.197-1.532-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.927 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"></path></svg>'.repeat(Math.floor(p.rating))}<span class="ml-1 text-sm text-gray-700">${p.rating.toFixed(1)}</span></div>
-          <div class="flex justify-between items-baseline mt-2">
-            <span class="text-xl font-bold font-poppins">$${p.price.toFixed(2)}</span>${p.discountPercentage?`<span class="text-sm text-red-500">-${p.discountPercentage.toFixed(0)}%</span>`:''}
+  function renderGrid() {
+    let list = products.slice();
+    if (sortOrder === 'asc') {
+      list.sort((a, b) => a.price - b.price);
+    } else {
+      list.sort((a, b) => b.price - a.price);
+    }
+
+    let html = '';
+    for (let i = 0; i < list.length; i++) {
+      let p = list[i];
+      let stars = '';
+      for (let j = 0; j < Math.floor(p.rating); j++) {
+        stars += '<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.683-1.532 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.777.565-1.832-.197-1.532-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.927 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"></path></svg>';
+      }
+      html += `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition cursor-pointer product-card" data-id="${p.id}">
+          <img src="${p.thumbnail}" alt="" class="w-full h-48 object-cover"/>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold truncate font-poppins">${p.title}</h3>
+            <div class="flex items-center text-yellow-500 mt-1">${stars}<span class="ml-1 text-sm text-gray-700">${p.rating.toFixed(1)}</span></div>
+            <div class="flex justify-between items-baseline mt-2">
+              <span class="text-xl font-bold font-poppins">$${p.price.toFixed(2)}</span>
+              ${p.discountPercentage ? `<span class="text-sm text-red-500">-${p.discountPercentage.toFixed(0)}%</span>` : ''}
+            </div>
           </div>
-        </div>
-      </div>`).join('');
-    emptyMsg.classList.toggle('hidden', list.length>0);
-  };
+        </div>`;
+    }
+    grid.innerHTML = html;
 
-  ['toggle','close'].forEach(id => {
-    app.querySelector('#'+id)!.addEventListener('click', () => {
-      panel.classList.toggle('translate-y-full');
-      if(id==='toggle') document.body.insertAdjacentHTML('beforeend','<div id="backdrop" class="fixed inset-0 bg-black bg-opacity-50"></div>');
-      else document.querySelector('#backdrop')?.remove();
-    });
+    if (list.length > 0) {
+      emptyMsg.classList.add('hidden');
+    } else {
+      emptyMsg.classList.remove('hidden');
+    }
+
+    const cards = grid.querySelectorAll('.product-card');
+    for (let i = 0; i < cards.length; i++) {
+      cards[i].addEventListener('click', () => {
+        const id = cards[i].getAttribute('data-id');
+        if (id) router.navigate(`/product/${id}`);
+      });
+    }
+  }
+
+  function updateUI() {
+    const buttons = app.querySelectorAll('.sort-btn');
+    for (let i = 0; i < buttons.length; i++) {
+      const btn = buttons[i];
+      const order = btn.getAttribute('data-order');
+      if (order === sortOrder) {
+        btn.classList.add('font-bold');
+        btn.classList.remove('text-gray-500');
+      } else {
+        btn.classList.remove('font-bold');
+        btn.classList.add('text-gray-500');
+      }
+    }
+    renderGrid();
+  }
+
+  const toggleBtn = app.querySelector('#toggle');
+  const closeBtn = app.querySelector('#close');
+
+  toggleBtn?.addEventListener('click', () => {
+    panel.classList.toggle('translate-y-full');
+    const backdrop = document.createElement('div');
+    backdrop.id = 'backdrop';
+    backdrop.className = 'fixed inset-0 bg-black bg-opacity-50';
+    document.body.appendChild(backdrop);
   });
 
-  app.querySelectorAll('.sort-btn').forEach(btn => btn.addEventListener('click', ()=>{
-    sortOrder = btn.getAttribute('data-order') as 'asc'|'desc'; updateUI();
-  }));
-  app.querySelector('#apply')!.addEventListener('click', ()=> { updateUI(); panel.classList.add('translate-y-full'); document.querySelector('#backdrop')?.remove(); });
-  app.querySelector('#reset')!.addEventListener('click', async ()=>{ sortOrder='desc'; products = (await fetch(`https://dummyjson.com/products/category/${category}`).then(r=>r.json()).catch(()=>({products:[]}))).products; updateUI(); panel.classList.add('translate-y-full'); document.querySelector('#backdrop')?.remove(); });
+  closeBtn?.addEventListener('click', () => {
+    panel.classList.add('translate-y-full');
+    const backdrop = document.getElementById('backdrop');
+    if (backdrop) backdrop.remove();
+  });
 
-  products = (await fetch(`https://dummyjson.com/products/category/${category}`).then(r=>r.json()).catch(()=>({products:[]}))).products;
+  const sortButtons = app.querySelectorAll('.sort-btn');
+  for (let i = 0; i < sortButtons.length; i++) {
+    sortButtons[i].addEventListener('click', () => {
+      const order = sortButtons[i].getAttribute('data-order');
+      if (order === 'asc' || order === 'desc') {
+        sortOrder = order;
+        updateUI();
+      }
+    });
+  }
+
+  const applyBtn = app.querySelector('#apply');
+  applyBtn?.addEventListener('click', () => {
+    updateUI();
+    panel.classList.add('translate-y-full');
+    const backdrop = document.getElementById('backdrop');
+    if (backdrop) backdrop.remove();
+  });
+
+  const resetBtn = app.querySelector('#reset');
+  resetBtn?.addEventListener('click', async () => {
+    sortOrder = 'desc';
+    await fetchProducts();
+    updateUI();
+    panel.classList.add('translate-y-full');
+    const backdrop = document.getElementById('backdrop');
+    if (backdrop) backdrop.remove();
+  });
+
+  await fetchProducts();
   updateUI();
 }
