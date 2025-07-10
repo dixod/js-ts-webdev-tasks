@@ -10,16 +10,28 @@ interface Product {
   discountPercentage: number;
   rating: number;
   thumbnail: string;
+  brand?: string;
 }
 
 let products: Product[] = [];
 let sortOrder: 'asc' | 'desc' = 'desc';
+let brands: string[] = [];
+let minPrice = 10;
+let maxPrice = 2000;
 
 export async function renderCategoryPage(app: HTMLElement, category: string) {
   app.innerHTML = '';
   app.append(createHeader());
 
   const title = category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const res = await fetch(`https://dummyjson.com/products/category/${category}`);
+  const data = await res.json();
+  products = data.products;
+  brands = Array.from(new Set(products.map(p => p.brand))).filter(Boolean) as string[];
+  const prices = products.map(p => p.price);
+  minPrice = Math.min(...prices, 10);
+  maxPrice = Math.max(...prices, 2000);
 
   app.innerHTML += `
     <main class="flex flex-col">
@@ -31,8 +43,24 @@ export async function renderCategoryPage(app: HTMLElement, category: string) {
         </div>
         <div class="flex flex-col lg:flex-row gap-8">
           <aside id="panel" class="fixed inset-x-0 bottom-0 h-1/2 bg-white z-40 transform translate-y-full lg:translate-y-0 lg:static lg:w-1/4 lg:max-w-xs lg:border-r overflow-y-auto transition-transform">
-            <div class="p-4 border-b lg:hidden flex justify-between"><h3 class="text-2xl font-poppins">Filters</h3><button id="close">&times;</button></div>
+            <div class="p-4 border-b lg:hidden flex justify-between">
+              <h3 class="text-2xl font-poppins">Filters</h3>
+              <button id="close">&times;</button>
+            </div>
             <div class="p-4 space-y-4">
+              <div>
+                <h4 class="text-lg font-semibold font-poppins mb-2">Brand</h4>
+                <select id="brand-filter" class="border rounded px-2 py-1 w-full">
+                  <option value="">All</option>
+                  ${brands.map(b => `<option value="${b}">${b}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <h4 class="text-lg font-semibold font-poppins mb-2">Price</h4>
+                <input id="min-price" type="number" min="10" max="2000" value="${minPrice}" class="border rounded px-2 py-1 w-20" />
+                <span>-</span>
+                <input id="max-price" type="number" min="10" max="2000" value="${maxPrice}" class="border rounded px-2 py-1 w-20" />
+              </div>
               <div>
                 <h4 class="text-lg font-semibold font-poppins mb-2">Sort</h4>
                 <button data-order="asc" class="sort-btn text-left w-full py-1">Ascending</button>
@@ -56,33 +84,40 @@ export async function renderCategoryPage(app: HTMLElement, category: string) {
   const panel = app.querySelector('#panel') as HTMLElement;
   const grid = app.querySelector('#grid') as HTMLElement;
   const emptyMsg = app.querySelector('#empty') as HTMLElement;
+  const brandFilter = app.querySelector('#brand-filter') as HTMLSelectElement;
+  const minPriceInput = app.querySelector('#min-price') as HTMLInputElement;
+  const maxPriceInput = app.querySelector('#max-price') as HTMLInputElement;
+  const toggleBtn = app.querySelector('#toggle');
+  const closeBtn = app.querySelector('#close');
+  const applyBtn = app.querySelector('#apply');
+  const resetBtn = app.querySelector('#reset');
+  const sortButtons = app.querySelectorAll('.sort-btn');
 
-  async function fetchProducts() {
-    try {
-      const res = await fetch(`https://dummyjson.com/products/category/${category}`);
-      const json = await res.json();
-      products = json.products;
-    } catch {
-      products = [];
-    }
+  function removeBackdrop() {
+    const backdrop = document.getElementById('backdrop');
+    if (backdrop) backdrop.remove();
   }
 
   function renderGrid() {
-    let list = products.slice();
-    if (sortOrder === 'asc') {
-      list.sort((a, b) => a.price - b.price);
-    } else {
-      list.sort((a, b) => b.price - a.price);
-    }
+    const brand = brandFilter?.value || '';
+    const min = +(minPriceInput?.value || minPrice);
+    const max = +(maxPriceInput?.value || maxPrice);
 
-    let html = '';
-    for (let i = 0; i < list.length; i++) {
-      let p = list[i];
-      let stars = '';
-      for (let j = 0; j < Math.floor(p.rating); j++) {
-        stars += '<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.683-1.532 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.777.565-1.832-.197-1.532-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.927 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"></path></svg>';
-      }
-      html += `
+    let filtered = products.filter(p =>
+      (!brand || p.brand === brand) &&
+      p.price >= min &&
+      p.price <= max
+    );
+
+    filtered.sort((a, b) => (sortOrder === 'asc' ? a.price - b.price : b.price - a.price));
+
+    grid.innerHTML = filtered.map(p => {
+      const stars = Array(Math.floor(p.rating)).fill(0).map(() => `
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.683-1.532 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.777.565-1.832-.197-1.532-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.927 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"></path>
+        </svg>`).join('');
+
+      return `
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition cursor-pointer product-card" data-id="${p.id}">
           <img src="${p.thumbnail}" alt="" class="w-full h-48 object-cover"/>
           <div class="p-4">
@@ -94,28 +129,20 @@ export async function renderCategoryPage(app: HTMLElement, category: string) {
             </div>
           </div>
         </div>`;
-    }
-    grid.innerHTML = html;
+    }).join('');
 
-    if (list.length > 0) {
-      emptyMsg.classList.add('hidden');
-    } else {
-      emptyMsg.classList.remove('hidden');
-    }
+    emptyMsg.classList.toggle('hidden', filtered.length > 0);
 
-    const cards = grid.querySelectorAll('.product-card');
-    for (let i = 0; i < cards.length; i++) {
-      cards[i].addEventListener('click', () => {
-        const id = cards[i].getAttribute('data-id');
+    grid.querySelectorAll('.product-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
         if (id) router.navigate(`/product/${id}`);
       });
-    }
+    });
   }
 
   function updateUI() {
-    const buttons = app.querySelectorAll('.sort-btn');
-    for (let i = 0; i < buttons.length; i++) {
-      const btn = buttons[i];
+    sortButtons.forEach(btn => {
       const order = btn.getAttribute('data-order');
       if (order === sortOrder) {
         btn.classList.add('font-bold');
@@ -124,15 +151,13 @@ export async function renderCategoryPage(app: HTMLElement, category: string) {
         btn.classList.remove('font-bold');
         btn.classList.add('text-gray-500');
       }
-    }
+    });
     renderGrid();
   }
 
-  const toggleBtn = app.querySelector('#toggle');
-  const closeBtn = app.querySelector('#close');
-
   toggleBtn?.addEventListener('click', () => {
     panel.classList.toggle('translate-y-full');
+
     const backdrop = document.createElement('div');
     backdrop.id = 'backdrop';
     backdrop.className = 'fixed inset-0 bg-black bg-opacity-50';
@@ -141,39 +166,38 @@ export async function renderCategoryPage(app: HTMLElement, category: string) {
 
   closeBtn?.addEventListener('click', () => {
     panel.classList.add('translate-y-full');
-    const backdrop = document.getElementById('backdrop');
-    if (backdrop) backdrop.remove();
+    removeBackdrop();
   });
 
-  const sortButtons = app.querySelectorAll('.sort-btn');
-  for (let i = 0; i < sortButtons.length; i++) {
-    sortButtons[i].addEventListener('click', () => {
-      const order = sortButtons[i].getAttribute('data-order');
+  sortButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const order = btn.getAttribute('data-order');
       if (order === 'asc' || order === 'desc') {
         sortOrder = order;
         updateUI();
       }
     });
-  }
+  });
 
-  const applyBtn = app.querySelector('#apply');
+  brandFilter?.addEventListener('change', updateUI);
+  minPriceInput?.addEventListener('input', updateUI);
+  maxPriceInput?.addEventListener('input', updateUI);
+
   applyBtn?.addEventListener('click', () => {
     updateUI();
     panel.classList.add('translate-y-full');
-    const backdrop = document.getElementById('backdrop');
-    if (backdrop) backdrop.remove();
+    removeBackdrop();
   });
 
-  const resetBtn = app.querySelector('#reset');
-  resetBtn?.addEventListener('click', async () => {
+  resetBtn?.addEventListener('click', () => {
     sortOrder = 'desc';
-    await fetchProducts();
+    brandFilter.value = '';
+    minPriceInput.value = String(minPrice);
+    maxPriceInput.value = String(maxPrice);
     updateUI();
     panel.classList.add('translate-y-full');
-    const backdrop = document.getElementById('backdrop');
-    if (backdrop) backdrop.remove();
+    removeBackdrop();
   });
 
-  await fetchProducts();
   updateUI();
 }

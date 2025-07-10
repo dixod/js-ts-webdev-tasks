@@ -35,22 +35,23 @@ export async function renderProductPage(app: HTMLElement, productId: string) {
     app.innerHTML = '<h1 class="text-2xl text-center py-12">Product not found</h1>';
     return;
   }
-
   if (!product) {
     app.innerHTML = '<h1 class="text-2xl text-center py-12">Product not found</h1>';
     return;
   }
 
   const main = document.createElement('main');
-  main.className = 'container mx-auto px-4 lg:px-24 py-8';
+  main.className = 'container px-4 py-8 mx-auto lg:px-24';
+
+  const capitalizedCategory = product.category
+    ? product.category.charAt(0).toUpperCase() + product.category.slice(1)
+    : '';
 
   main.innerHTML = `
     <nav class="text-gray-500 text-sm mb-8 font-rubik">
       <a href="/" class="hover:underline">Home</a>
       <span class="mx-2">></span>
-      <a href="/category/${product.category || ''}" class="hover:underline">
-        ${product.category ? product.category.charAt(0).toUpperCase() + product.category.slice(1) : ''}
-      </a>
+      <a href="/category/${product.category || ''}" class="hover:underline">${capitalizedCategory}</a>
       <span class="mx-2">></span>
       <span class="text-black">${product.title}</span>
     </nav>
@@ -60,16 +61,16 @@ export async function renderProductPage(app: HTMLElement, productId: string) {
           <img src="${product.images[0]}" alt="${product.title}" id="main-image" class="max-h-[300px] object-contain rounded-xl transition-all duration-200 mx-auto">
         </div>
         <div class="flex flex-row gap-4 mt-4 justify-center">
-          ${product.images.slice(0, 4).map((img, i) =>
-            `<img src="${img}" alt="${product.title}" class="w-16 h-16 object-cover rounded-lg border-2 ${i === 0 ? 'border-black' : 'border-transparent'} cursor-pointer thumb-img" data-idx="${i}">`
-          ).join('')}
+          ${product.images.slice(0, 4).map((img, i) => `
+            <img src="${img}" alt="${product.title}" class="w-16 h-16 object-cover rounded-lg border-2 ${i === 0 ? 'border-black' : 'border-transparent'} cursor-pointer thumb-img" data-idx="${i}">
+          `).join('')}
         </div>
       </div>
       <div class="hidden md:flex flex-row gap-8">
         <div class="flex flex-col gap-4">
-          ${product.images.slice(0, 4).map((img, i) =>
-            `<img src="${img}" alt="${product.title}" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg border-2 ${i === 0 ? 'border-black' : 'border-transparent'} cursor-pointer thumb-img" data-idx="${i}">`
-          ).join('')}
+          ${product.images.slice(0, 4).map((img, i) => `
+            <img src="${img}" alt="${product.title}" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg border-2 ${i === 0 ? 'border-black' : 'border-transparent'} cursor-pointer thumb-img" data-idx="${i}">
+          `).join('')}
         </div>
         <div class="flex-1 flex justify-center items-center">
           <div class="bg-gray-100 rounded-2xl flex items-center justify-center w-[420px] h-[420px]">
@@ -118,7 +119,8 @@ export async function renderProductPage(app: HTMLElement, productId: string) {
 
   thumbs.forEach((img, idx) => {
     img.addEventListener('click', () => {
-      mainImages.forEach(mainImg => mainImg.src = (img as HTMLImageElement).src);
+      const src = (img as HTMLImageElement).src;
+      mainImages.forEach(mainImg => (mainImg.src = src));
       thumbs.forEach((im, i) => {
         im.classList.toggle('border-black', i === idx);
         im.classList.toggle('border-transparent', i !== idx);
@@ -137,7 +139,7 @@ export async function renderProductPage(app: HTMLElement, productId: string) {
 
   increaseBtn.addEventListener('click', () => {
     let value = parseInt(quantityInput.value);
-    if (value < product!.stock) quantityInput.value = (value + 1).toString();
+    if (value < product.stock) quantityInput.value = (value + 1).toString();
   });
 
   const addToCartBtn = main.querySelector('#add-to-cart') as HTMLButtonElement;
@@ -145,12 +147,14 @@ export async function renderProductPage(app: HTMLElement, productId: string) {
   addToCartBtn.addEventListener('click', () => {
     const quantity = parseInt(quantityInput.value);
     const cart = getLocalCart();
-    const idx = cart.findIndex(item => item.id === product!.id);
+    const idx = cart.findIndex(item => item.id === product.id);
+
     if (idx !== -1) {
       cart[idx].quantity += quantity;
     } else {
-      cart.push({ id: product!.id, quantity });
+      cart.push({ id: product.id, quantity });
     }
+
     setLocalCart(cart);
     router.navigate('/cart/local');
   });

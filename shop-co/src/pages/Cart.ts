@@ -6,10 +6,9 @@ import { router } from '../router';
 type CartItem = { id: number; quantity: number };
 
 function getLocalCart(): CartItem[] {
-  const cartString = localStorage.getItem('cart');
-  if (!cartString) return [];
   try {
-    return JSON.parse(cartString);
+    const cart = localStorage.getItem('cart');
+    return cart ? JSON.parse(cart) : [];
   } catch {
     return [];
   }
@@ -20,9 +19,7 @@ function setLocalCart(cart: CartItem[]) {
 }
 
 function removeFromLocalCart(productId: number) {
-  const cart = getLocalCart();
-  const filteredCart = cart.filter((item: CartItem) => item.id !== productId);
-  setLocalCart(filteredCart);
+  setLocalCart(getLocalCart().filter(item => item.id !== productId));
 }
 
 function clearLocalCart() {
@@ -31,6 +28,7 @@ function clearLocalCart() {
 
 export async function renderCartPage(app: HTMLElement, cartId: string) {
   const cart = getLocalCart();
+
   if (cart.length === 0) {
     app.innerHTML = `
       ${createHeader().outerHTML}
@@ -43,36 +41,28 @@ export async function renderCartPage(app: HTMLElement, cartId: string) {
     return;
   }
 
-  const productsData = [];
-  for (let i = 0; i < cart.length; i++) {
-    const response = await fetch(`https://dummyjson.com/products/${cart[i].id}`);
-    const product = await response.json();
-    productsData.push(product);
-  }
+  const productsData = await Promise.all(
+    cart.map(item =>
+      fetch(`https://dummyjson.com/products/${item.id}`).then(res => res.json())
+    )
+  );
 
-  let subtotal = 0;
-  let discount = 0;
-
-  for (let i = 0; i < productsData.length; i++) {
-    const product = productsData[i];
-    const quantity = cart[i].quantity;
-    subtotal += product.price * quantity;
-    discount += Math.round(product.price * (product.discountPercentage / 100)) * quantity;
-  }
-
+  const subtotal = productsData.reduce((sum, p, i) => sum + p.price * cart[i].quantity, 0);
+  const discount = productsData.reduce(
+    (sum, p, i) => sum + Math.round(p.price * (p.discountPercentage / 100)) * cart[i].quantity,
+    0
+  );
   const total = subtotal - discount;
 
   app.innerHTML = '';
   app.appendChild(createHeader());
 
   const main = document.createElement('main');
-  main.className = 'container mx-auto px-4 lg:px-24 py-8';
+  main.className = 'container px-4 py-8 mx-auto lg:px-24';
 
-  let productsHtml = '';
-  for (let i = 0; i < cart.length; i++) {
-    const product = productsData[i];
+  const productsHtml = productsData.map((product, i) => {
     const quantity = cart[i].quantity;
-    productsHtml += `
+    return `
       <div class="flex items-center gap-4 py-4 px-4 md:px-0 border-b last:border-b-0">
         <img src="${product.thumbnail}" alt="${product.title}" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg bg-gray-100 flex-shrink-0">
         <div class="flex-1 min-w-0">
@@ -88,7 +78,7 @@ export async function renderCartPage(app: HTMLElement, cartId: string) {
         </div>
       </div>
     `;
-  }
+  }).join('');
 
   main.innerHTML = `
     <nav class="text-gray-500 text-sm mb-8 font-rubik">
@@ -118,7 +108,7 @@ export async function renderCartPage(app: HTMLElement, cartId: string) {
             <span>Total</span>
             <span>$${total}</span>
           </div>
-          <button class="bg-black text-white w-full py-3 rounded-full font-bold mt-4 flex items-center justify-center gap-2 text-lg" id="go-to-checkout">
+          <button id="go-to-checkout" class="bg-black text-white w-full py-3 rounded-full font-bold mt-4 flex items-center justify-center gap-2 text-lg">
             Go to Checkout <span aria-hidden="true">→</span>
           </button>
         </div>
@@ -130,26 +120,21 @@ export async function renderCartPage(app: HTMLElement, cartId: string) {
   app.appendChild(createSubscribeBanner());
   app.appendChild(createFooter());
 
-  const removeButtons = main.querySelectorAll('button[data-product-id]');
-  removeButtons.forEach(button => {
+  main.querySelectorAll('button[data-product-id]').forEach(button => {
     button.addEventListener('click', () => {
-      const productId = Number(button.getAttribute('data-product-id'));
+      const id = Number(button.getAttribute('data-product-id'));
       const currentCart = getLocalCart();
-
       if (currentCart.length === 1) {
         clearLocalCart();
         router.navigate('/');
       } else {
-        removeFromLocalCart(productId);
+        removeFromLocalCart(id);
         renderCartPage(app, cartId);
       }
     });
   });
 
-  const checkoutBtn = main.querySelector('#go-to-checkout');
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', () => {
-      router.navigate('/checkout');
-    });
-  }
+  main.querySelector('#go-to-checkout')?.addEventListener('click', () => {
+    router.navigate('/checkout');
+  });
 }

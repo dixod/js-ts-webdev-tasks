@@ -2,11 +2,14 @@ import './style.css';
 import { createHeader } from './components/Header';
 import { createSubscribeBanner } from './components/SubscribeBanner';
 import { createFooter } from './components/Footer';
-import { router } from '../src/router';
+import { router } from './router';
 import { renderHomePage } from './pages/Home';
 import { renderCategoryPage } from './pages/Category';
 import { renderProductPage } from './pages/Product';
 import { renderCartPage } from './pages/Cart';
+import { renderCheckoutPage } from './pages/Checkout';
+import { renderPaymentPage } from './pages/Payment';
+import { renderOrderConfirmationPage } from './pages/OrderConfirmation';
 
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -53,6 +56,22 @@ router.on('/cart/empty', () => {
   `;
 });
 
+router.on('/checkout', () => {
+  renderCheckoutPage(app);
+}).resolve();
+
+router.on('/payment/:cartId', (match) => {
+  const cartId = match?.data?.cartId as string;
+  if (cartId) {
+    renderPaymentPage(app, cartId);
+  } else {
+    router.navigate('/');
+  }
+}).resolve();
+
+router.on('/confirmation', () => {
+  renderOrderConfirmationPage(app);
+}).resolve();
 
 router.notFound(() => {
   app.innerHTML = `
